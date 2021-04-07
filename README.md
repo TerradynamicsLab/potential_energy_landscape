@@ -10,7 +10,7 @@ Ratan Othayoth, Qihan Xuan, Yaqing Wang, and Chen Li*\
 ## Instructions
 1. Data are included as `.MAT` files and can be opened in `MATLAB`.
 2. Run `plot_landscape.m` in `static_plots` to visualize static energy landscapes for obstacle traversal and self-righting shown in figure 4 of main text.
-3. Run  `plot_*.m` codes in `interactive_plots` for interactive figure ener
+3. Run  `plot_*.m` codes in `interactive_plots` for interactive figures of potential energy landscapes
 
 
 
