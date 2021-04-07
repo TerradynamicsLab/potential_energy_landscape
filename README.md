@@ -1,6 +1,6 @@
 # potential_energy_landscape
 
-Data accompanying publication: 10.1098/rspb.2020.2734\
+Data accompanying publication: [10.1098/rspb.2020.2734](https://doi.org/10.1098/rspb.2020.2734)\
 Proceedings of the Royal Society B: Biological Sciences
 
 **Locomotor transitions in the potential energy landscape-dominated regime**\
