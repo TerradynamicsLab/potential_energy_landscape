@@ -16,9 +16,15 @@ function plot_beam
     ff.fh = figure(1)
     clf
     set(gcf,'position',[1 50 900 900],'color',[1 1 1],'units','normalized','outerposition',[0 0 1 1])
+%% robot plot
+    subplot(2,3,1)
+    hold on
+        
+    % initial robot state
+    x_ip = x(1,1,1); roll_ip = roll(n0,1,1); pitch_ip = pitch(1,1,n0);   
+    beam_angles=[0,0];
+    load_beam_model
     mk_size=8;
-    
-    robot=    1
     
 %% 3d plots
     ff.sp(1) = subplot(2,3,2)
@@ -80,17 +86,17 @@ function plot_beam
     ff.sl.x = uicontrol('style','slider','units','pixel','string','x','tag','tag_sl_x'); 
     ff.sl.x.Max = max(x_steps);
     ff.sl.x.Min = min(x_steps);
-    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe)); 
+    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe,robot)); 
     
     ff.sl.p = uicontrol('style','slider','units','pixel','string','body pitch','tag','tag_sl_p'); 
     ff.sl.p.Max = max(p_steps);
     ff.sl.p.Min = min(p_steps);
-    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe)); 
+    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe,robot)); 
     
     ff.sl.r = uicontrol('style','slider','units','pixel','string','body roll','tag','tag_sl_r'); 
     ff.sl.r.Max = max(r_steps);
     ff.sl.r.Min = min(r_steps);
-    addlistener(ff.sl.r,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,r_steps,ff.sh.r,roll,pe)); 
+    addlistener(ff.sl.r,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,r_steps,ff.sh.r,roll,pe,robot)); 
     
     ff.bt = uicontrol('style','pushbutton')
     addlistener(ff.bt,'ButtonDown',@(hObject, event) reset_fig(n0,  x(1,1,1), pitch(1,1,n0), roll(n0,1,1), pe, robot))
@@ -103,9 +109,9 @@ function plot_beam
     format_gui
     
 %   reset the figure once before showing
-    reset_fig(n0, x(1,1,1), pitch(1,1,n0), roll(n0,1,1), pe)
+    reset_fig(n0, x(1,1,1), pitch(1,1,n0), roll(n0,1,1), pe, robot)
     
-function update_fig(hObject, event, steps,sh,depvar,pe)
+function update_fig(hObject, event, steps,sh,depvar,pe,robot)
 
     val_temp = get(hObject,'Value');
     [~, min_idx] = min(abs(steps-val_temp));
@@ -122,10 +128,11 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             sh.CData = squeeze(    pe(:, min_idx, :));
             hh = findobj('tag','x_sec');
             gg = findobj('tag','sp_x_sec');  
-            gg.Title.String=['{\it x}= ' str_app num2str(abs(steps(min_idx))) 'mm'];
+            gg.Title.String=['{\it x} = ' str_app num2str(abs(steps(min_idx))) 'mm'];
             gg = findobj('tag','xbound');            gg.ZData = [1 1 1 1]*sh.ZData(1);
             ss = findobj('tag','state_3d');
             ss.ZData = steps(min_idx);
+            gg = findobj('tag','var_1');     gg.String=['body forward position = '  str_app num2str(abs(steps(min_idx))) ' mm']; 
             
         case 'body pitch'
             sh.YData = squeeze(depvar(:, :, min_idx));
@@ -136,6 +143,7 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','pbound');            gg.YData = [1 1 1 1]*sh.YData(1);
             ss = findobj('tag','state_3d');
             ss.YData = steps(min_idx);
+            gg = findobj('tag','var_2');     gg.String=['body pitch = ' str_app num2str(abs(steps(min_idx))) '°'];
       
         case 'body roll'
             sh.XData = squeeze(depvar(min_idx, :, :));
@@ -146,6 +154,7 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','rbound');            gg.XData = [1 1 1 1]*sh.XData(1);
             ss = findobj('tag','state_3d');
             ss.XData = steps(min_idx);
+            gg = findobj('tag','var_3');     gg.String=['body pitch = ' str_app num2str(abs(steps(min_idx))) '°'];
 
     end
 
@@ -161,6 +170,9 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
     sw = findobj('tag','state_cx'); sw.XData=ss.XData; sw.YData=ss.YData; sw.ZData=2000;
     sr = findobj('tag','state_cr'); sr.XData=ss.YData; sr.YData=ss.ZData; sr.ZData=2000;
     sp = findobj('tag','state_cp'); sp.XData=ss.XData; sp.YData=ss.ZData; sp.ZData=2000;
+    
+    % robot geometry
+    update_beam_system(robot,x_ip,roll_ip,pitch_ip);
     
     
 % reset figure to initial state    
@@ -182,17 +194,13 @@ function reset_fig(n0,x0,p0,r0,pe,robot)
     gg = findobj('tag','tag_sl_r');  gg.Value = r0;
     gg = findobj('tag','tag_sl_p');  gg.Value = p0;
     
-    % reset title
-     
+    % reset title     
     if(x0<0) str_app='−' ; else str_app=''; end
     gg = findobj('tag','sp_x_sec');  gg.Title.String=['body forward position = '  str_app num2str(abs(x0)) ' mm'];
     gg = findobj('tag','var_1');     gg.String=['body forward position = '  str_app num2str(abs(x0)) ' mm']; 
-    
     if(p0<0) str_app='−' ; else str_app=''; end
     gg = findobj('tag','sp_p_sec'); gg.Title.String=['body pitch = '  str_app num2str(abs(p0)) '°'];
     gg = findobj('tag','var_2');     gg.String=['body pitch = '  str_app num2str(abs(p0)) '°'];
-    
-      
     if(r0<0) str_app='−' ; else str_app=''; end
     gg = findobj('tag','sp_r_sec'); gg.Title.String=['body roll = '  str_app num2str(abs(r0)) '°'];
     gg = findobj('tag','var_3');     gg.String=['body roll = '  str_app num2str(abs(r0)) '°'];
@@ -204,6 +212,8 @@ function reset_fig(n0,x0,p0,r0,pe,robot)
     ss = findobj('tag','state_cp');    ss.XData = r0;    ss.YData = x0;    ss.ZData = 2000;
      
     % robot
+    update_beam_system(robot,x0,r0,p0);
+    
 
-%     update_robot_geometry
+
     
