@@ -26,17 +26,17 @@ for ii = 1:numel(fn)
    
    switch fn{ii}
        case 'w'
-           ff.st(ii).String = 'Wing opening angle'
+           ff.st(ii).String = 'wing opening angle'
        case 'x'
-           ff.st(ii).String = 'Body forward position'
+           ff.st(ii).String = 'body forward position'
        case 'p'
-           ff.st(ii).String = 'Body pitch'
+           ff.st(ii).String = 'body pitch'
        case 'r'
-           ff.st(ii).String = 'Body roll'
+           ff.st(ii).String = 'body roll'
        case 'y'
-           ff.st(ii).String = 'Body yaw'
+           ff.st(ii).String = 'body yaw'
        case 'b'
-           ff.st(ii).String = 'Bearing'
+           ff.st(ii).String = 'bearing'
    end
    
 end
