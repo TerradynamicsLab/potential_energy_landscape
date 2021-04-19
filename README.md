@@ -20,8 +20,10 @@ Ratan Othayoth, Qihan Xuan, Yaqing Wang, and Chen Li*\
 - System state and plots can be reset to the initial state by right-clicking on the button on top right corner
 
 
-## Additioal information
-[![Video abstact](http://img.youtube.com/vi/xqFAeN9MlnQ/0.jpg)](http://www.youtube.com/watch?v=xqFAeN9MlnQ "")
+## Additional information
+- Detailed steps to calculate potential energy landscape ([see supplementary text](https://doi.org/10.6084/m9.figshare.14386855))
+- [Video abstact](http://www.youtube.com/watch?v=xqFAeN9MlnQ)
+- [Overview video](https://youtu.be/xus_Xs-Xpvw)
 
 
 
