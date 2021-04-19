@@ -21,8 +21,8 @@ function plot_righting
 %% robot plot
     subplot(2,3,1)
     hold on
-    load_robot_model
-    generate_robot_entities
+    load_righting_model
+    generate_righting_entities
     % initial robot state
     wing_ip = 0; roll_ip = 0; pitch_ip = 0;
  
@@ -172,7 +172,7 @@ function update_fig(hObject, event, steps,sh,depvar,pe,robot)
     sp = findobj('tag','state_cp'); sp.XData=ss.XData; sp.YData=ss.ZData; sp.ZData=2000;
     
 
-    update_robot_geometry;
+    update_righting_geometry
 
 % reset figure to initial state    
 function reset_fig(n0,w0,p0,r0,pe,robot)
@@ -212,7 +212,8 @@ function reset_fig(n0,w0,p0,r0,pe,robot)
     wing_ip  = w0;
     pitch_ip = p0;
     roll_ip  = r0;
-    update_robot_geometry
+    
+    update_righting_geometry
     
     
 
