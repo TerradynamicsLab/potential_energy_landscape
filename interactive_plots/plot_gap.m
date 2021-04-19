@@ -16,9 +16,15 @@ function plot_gap
     ff.fh = figure(1)
     clf
     set(gcf,'position',[1 50 900 900],'color',[1 1 1],'units','normalized','outerposition',[0 0 1 1])
-    mk_size=8;
+    %% robot plot
+    subplot(2,3,1)
+    hold on
+        
+    % initial robot state
+    x_ip = x(1,1,1); yaw_ip = yaw(n0,1,1); pitch_ip = pitch(1,1,n0); 
     
-    robot=    1
+    load_gap_model
+    mk_size=8;
     
 %% 3d plots
     ff.sp(1) = subplot(2,3,2)
@@ -51,7 +57,7 @@ function plot_gap
     xlim([-1,1]*90);       xticks([-2,-1,0,1,2]*45); xticklabels({[char(8211) '90'],[char(8211) '45'],'0','45','90'})
     ylim([-1,1]*90);       yticks([-2,-1,0,1,2]*45); yticklabels({[char(8211) '90'],[char(8211) '45'],'0','45','90'})
     xlabel('yaw (°)');         ylabel('pitch (°)');
-    title(['{\it x }= ' num2str(x_steps(1)) '°'],'fontweight','normal');
+    title(['{\it x} = ' num2str(x_steps(1)) '°'],'fontweight','normal');
     set(get(gca,'yaxis'),'direction','reverse');
 
 
@@ -72,7 +78,7 @@ function plot_gap
     ff.mh.state_cp = plot(0,0,'marker','o','markerfacecolor','g','markeredgecolor','k','markersize',mk_size,'tag','state_cp');
     xlim([-1,1]*90);       xticks([-2,-1,0,1,2]*45); xticklabels({[char(8211) '90'],[char(8211) '45'],'0','45','90'})
     ylim(x_steps([1 end])); yticks([0:4]*20);
-    xlabel('body yaw (°)');         ylabel('{\it x}(mm)');
+    xlabel('body yaw (°)');         ylabel('{\it x} (mm)');
     title(['body pitch = ' num2str(p_steps(n0)) '°'],'fontweight','normal');
     
 
@@ -80,17 +86,17 @@ function plot_gap
     ff.sl.x = uicontrol('style','slider','units','pixel','string','x','tag','tag_sl_x'); 
     ff.sl.x.Max = max(x_steps);
     ff.sl.x.Min = min(x_steps);
-    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe)); 
+    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe,robot)); 
     
     ff.sl.p = uicontrol('style','slider','units','pixel','string','body pitch','tag','tag_sl_p'); 
     ff.sl.p.Max = max(p_steps);
     ff.sl.p.Min = min(p_steps);
-    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe)); 
+    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe,robot)); 
     
     ff.sl.r = uicontrol('style','slider','units','pixel','string','body yaw','tag','tag_sl_r'); 
     ff.sl.r.Max = max(y_steps);
     ff.sl.r.Min = min(y_steps);
-    addlistener(ff.sl.r,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,y_steps,ff.sh.r,yaw,pe)); 
+    addlistener(ff.sl.r,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,y_steps,ff.sh.r,yaw,pe,robot)); 
     
     ff.bt = uicontrol('style','pushbutton')
     addlistener(ff.bt,'ButtonDown',@(hObject, event) reset_fig(n0,  x(1,1,1), pitch(1,1,n0), yaw(n0,1,1), pe, robot))
@@ -99,13 +105,13 @@ function plot_gap
         ff.st(ii) = uicontrol('style','text','units','normalized','tag',['var_' num2str(ii)]);
     end
     
-%     configure ui components     
+%   configure ui components     
     format_gui
     
 %   reset the figure once before showing
-    reset_fig(n0, x(1,1,1), pitch(1,1,n0), yaw(n0,1,1), pe)
+    reset_fig(n0, x(1,1,1), pitch(1,1,n0), yaw(n0,1,1), pe,robot)
     
-function update_fig(hObject, event, steps,sh,depvar,pe)
+function update_fig(hObject, event, steps,sh,depvar,pe,robot)
 
     val_temp = get(hObject,'Value');
     [~, min_idx] = min(abs(steps-val_temp));
@@ -122,10 +128,12 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             sh.CData = squeeze(    pe(:, min_idx, :));
             hh = findobj('tag','x_sec');
             gg = findobj('tag','sp_x_sec');  
-            gg.Title.String=['{\it x}= ' str_app num2str(abs(steps(min_idx))) 'mm'];
+            gg.Title.String=['{\it x} = ' str_app num2str(abs(steps(min_idx))) ' mm'];
             gg = findobj('tag','xbound');            gg.ZData = [1 1 1 1]*sh.ZData(1);
             ss = findobj('tag','state_3d');
             ss.ZData = steps(min_idx);
+            gg = findobj('tag','var_1');  
+            gg.String=['body forward position (x) = ', str_app num2str(abs(steps(min_idx))) ' mm'];
             
         case 'body pitch'
             sh.YData = squeeze(depvar(:, :, min_idx));
@@ -136,6 +144,8 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','pbound');            gg.YData = [1 1 1 1]*sh.YData(1);
             ss = findobj('tag','state_3d');
             ss.YData = steps(min_idx);
+            gg = findobj('tag','var_2');  
+            gg.String=['body pitch = ' str_app num2str(abs(steps(min_idx))) '°'];
       
         case 'body yaw'
             sh.XData = squeeze(depvar(min_idx, :, :));
@@ -146,6 +156,8 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','ybound');            gg.XData = [1 1 1 1]*sh.XData(1);
             ss = findobj('tag','state_3d');
             ss.XData = steps(min_idx);
+            gg = findobj('tag','var_3');  
+            gg.String=['body yaw = ' str_app num2str(abs(steps(min_idx))) '°'];
 
     end
 
@@ -158,28 +170,31 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
     yaw_ip  = ss.XData*pi/180;
     
     % markers on subplots     
-    sw = findobj('tag','state_cx'); sw.XData=ss.XData; sw.YData=ss.YData; sw.ZData=2000;
-    sr = findobj('tag','state_cy'); sr.XData=ss.YData; sr.YData=ss.ZData; sr.ZData=2000;
+    sx = findobj('tag','state_cx'); sx.XData=ss.XData; sx.YData=ss.YData; sx.ZData=2000;
+    sy = findobj('tag','state_cy'); sy.XData=ss.YData; sy.YData=ss.ZData; sy.ZData=2000;
     sp = findobj('tag','state_cp'); sp.XData=ss.XData; sp.YData=ss.ZData; sp.ZData=2000;
+    
+    % robot
+    update_robot_geometry(x_ip,pitch_ip,yaw_ip,robot);
     
     
 % reset figure to initial state    
-function reset_fig(n0,x0,p0,r0,pe,robot)
+function reset_fig(n0,x0,p0,y0,pe,robot)
     
     % orthogonal sections in 3d plot
     gg = findobj('tag','x3d');      gg.CData = squeeze(pe( :, 1, :));   gg.ZData = x0*ones(size(gg.ZData)); 
     gg = findobj('tag','p3d');      gg.CData = squeeze(pe( :, :,n0));   gg.YData = p0*ones(size(gg.YData));
-    gg = findobj('tag','y3d');      gg.CData = squeeze(pe( n0, :, :));  gg.XData = r0*ones(size(gg.XData));
+    gg = findobj('tag','y3d');      gg.CData = squeeze(pe( n0, :, :));  gg.XData = y0*ones(size(gg.XData));
     % section boundaries
     gg = findobj('tag','xbound');   gg.ZData = [1 1 1 1]*x0;
     gg = findobj('tag','pbound');   gg.YData = [1 1 1 1]*p0;
-    gg = findobj('tag','ybound');   gg.XData = [1 1 1 1]*r0;
+    gg = findobj('tag','ybound');   gg.XData = [1 1 1 1]*y0;
     % 2d plots
     gg = findobj('tag','x_sec');    gg.ZData = squeeze(pe( :, 1, :));
     gg = findobj('tag','p_sec');    gg.ZData = squeeze(pe( :, :,n0));
     gg = findobj('tag','y_sec');    gg.ZData = squeeze(pe( n0, :, :));    % slider position
     gg = findobj('tag','tag_sl_x');  gg.Value = x0;
-    gg = findobj('tag','tag_sl_r');  gg.Value = r0;
+    gg = findobj('tag','tag_sl_r');  gg.Value = y0;
     gg = findobj('tag','tag_sl_p');  gg.Value = p0;
     
     % reset title
@@ -193,17 +208,51 @@ function reset_fig(n0,x0,p0,r0,pe,robot)
     gg = findobj('tag','var_2');     gg.String=['body pitch = '  str_app num2str(abs(p0)) '°'];
     
       
-    if(r0<0) str_app='−' ; else str_app=''; end
-    gg = findobj('tag','sp_y_sec'); gg.Title.String=['body yaw = '  str_app num2str(abs(r0)) '°'];
-    gg = findobj('tag','var_3');     gg.String=['body yaw = '  str_app num2str(abs(r0)) '°'];
+    if(y0<0) str_app='−' ; else str_app=''; end
+    gg = findobj('tag','sp_y_sec'); gg.Title.String=['body yaw = '  str_app num2str(abs(y0)) '°'];
+    gg = findobj('tag','var_3');     gg.String=['body yaw = '  str_app num2str(abs(y0)) '°'];
     
     % state markers
-    ss = findobj('tag','state_3d');    ss.ZData = x0;    ss.YData = p0;    ss.XData = r0;
-    ss = findobj('tag','state_cx');    ss.XData = r0;    ss.YData = p0;    ss.ZData = 2000;
+    ss = findobj('tag','state_3d');    ss.ZData = x0;    ss.YData = p0;    ss.XData = y0;
+    ss = findobj('tag','state_cx');    ss.XData = y0;    ss.YData = p0;    ss.ZData = 2000;
     ss = findobj('tag','state_cy');    ss.XData = p0;    ss.YData = x0;    ss.ZData = 2000;
-    ss = findobj('tag','state_cp');    ss.XData = r0;    ss.YData = x0;    ss.ZData = 2000;
+    ss = findobj('tag','state_cp');    ss.XData = y0;    ss.YData = x0;    ss.ZData = 2000;
      
     % robot
+    update_robot_geometry(x0,p0,y0,robot);
+    
+% update_robot_geometry
+function update_robot_geometry(x,p,y,robot)
+    
+    % rotate robot body     
+    rotated_points = EulerZYX_Fast([0 p y])*([robot.xx(:), robot.yy(:), robot.zz(:)]');
+    
+    % find points that lie in the gap
+    valid_idx = find(((rotated_points(1,:)+x)>0).*((rotated_points(1,:)+x)<robot.gap_w));    
+    z_gap = rotated_points(3,valid_idx);
 
-%     update_robot_geometry
+    % find points that lie outside the gap
+    valid_idx = logical( ((rotated_points(1,:)+x)<=0)+((rotated_points(1,:)+x)>=robot.gap_w));    
+    z_top = rotated_points(3,valid_idx);
+
+    % check if the intersect with gap and top
+    is_int_gap = any(z_gap<=0);
+    is_int_top = any(z_top<=robot.gap_d);
+
+
+    % both intersect, choose the max shift
+    if(is_int_gap && is_int_top)
+       z_com = max([0-min(z_gap), robot.gap_d-min(z_top)]);
+    % if only gap intersects, 
+    elseif(is_int_gap)
+       z_com = 0-min(z_gap); 
+    elseif(is_int_top)
+       z_com = robot.gap_d-min(z_top);
+    end
+
+    
+    % update robot surface         
+    robot.sh.XData = reshape(rotated_points(1,:),size(robot.sh.XData)) + x;
+    robot.sh.YData = reshape(rotated_points(2,:),size(robot.sh.XData));
+    robot.sh.ZData = reshape(rotated_points(3,:),size(robot.sh.XData)) + z_com - robot.gap_d ;
     
