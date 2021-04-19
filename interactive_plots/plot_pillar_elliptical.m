@@ -3,7 +3,8 @@ function plot_pillar_elliptical
     clear
     close all
     
-    load data/dat_pillar_ellip.mat
+    load data/dat_pillar_ellip.mat 
+    load data/dat_pillar_ellip.mat pe x pitch heading
     addpath(genpath('geometry'))
     addpath(genpath('geometry/pillar'))
     addpath(genpath('graphics'))

@@ -3,7 +3,9 @@ function plot_beam
     clear
     close all
     
-    load data/dat_beam.mat
+    load data/dat_beam.mat 
+    load data/dat_beam.mat pe x pitch roll   
+    
     addpath(genpath('geometry'))
     addpath(genpath('geometry/beams'))
     addpath(genpath('graphics'))

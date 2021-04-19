@@ -3,7 +3,8 @@ function plot_gap
     clear
     close all
     
-    load data/dat_gap.mat
+    load data/dat_gap.mat 
+    load data/dat_gap.mat pe x pitch yaw
     addpath(genpath('geometry'))
     addpath(genpath('geometry/beams'))
     addpath(genpath('graphics'))

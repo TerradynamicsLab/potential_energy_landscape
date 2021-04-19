@@ -3,7 +3,8 @@ function plot_righting
     clear
     close all
     
-    load data/dat_righting.mat
+    load data/dat_righting.mat 
+    load data/dat_righting.mat pe wing pitch roll
     addpath(genpath('geometry'))
     addpath(genpath('geometry/righting'))
     addpath(genpath('graphics'))

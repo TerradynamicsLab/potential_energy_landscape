@@ -4,6 +4,7 @@ function plot_bump
     close all
     
     load data/dat_bump.mat
+    load data/dat_bump.mat pe x pitch yaw
     addpath(genpath('geometry'))
     addpath(genpath('graphics'))
     
