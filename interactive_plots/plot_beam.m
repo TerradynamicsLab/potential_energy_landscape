@@ -156,7 +156,7 @@ function update_fig(hObject, event, steps,sh,depvar,pe,robot)
             gg = findobj('tag','rbound');            gg.XData = [1 1 1 1]*sh.XData(1);
             ss = findobj('tag','state_3d');
             ss.XData = steps(min_idx);
-            gg = findobj('tag','var_3');     gg.String=['body pitch = ' str_app num2str(abs(steps(min_idx))) '°'];
+            gg = findobj('tag','var_3');     gg.String=['body roll = ' str_app num2str(abs(steps(min_idx))) '°'];
 
     end
 
