@@ -5,6 +5,7 @@ function plot_pillar_cuboidal
     
     load data/dat_pillar_cuboid.mat   
     addpath(genpath('geometry'))
+    addpath(genpath('geometry/pillar'))
     addpath(genpath('graphics'))
     
     n  = numel(p_steps);
