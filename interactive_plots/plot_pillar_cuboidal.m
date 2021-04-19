@@ -3,7 +3,7 @@ function plot_pillar_cuboidal
     clear
     close all
     
-    load data/dat_pillar_cuboid.mat
+    load data/dat_pillar_cuboid.mat   
     addpath(genpath('geometry'))
     addpath(genpath('graphics'))
     
@@ -15,9 +15,18 @@ function plot_pillar_cuboidal
     ff.fh = figure(1)
     clf
     set(gcf,'position',[1 50 900 900],'color',[1 1 1],'units','normalized','outerposition',[0 0 1 1])
-    mk_size=8;
+
+%% robot plot
+    subplot(2,3,1)
+    hold on
+             
+    load_pillar_model_cuboidal
+    x=x-robot.x_offset;
+    x_steps = x_steps-robot.x_offset;
+    % initial robot state
+    x_ip = x(1,1,1); pitch_ip = pitch(n0,1,1); heading_ip = heading(1,1,n0);
     
-    robot=    1
+    mk_size=8;
     
 %% 3d plots
     ff.sp(1) = subplot(2,3,2)
@@ -79,17 +88,17 @@ function plot_pillar_cuboidal
     ff.sl.x = uicontrol('style','slider','units','pixel','string','x','tag','tag_sl_x'); 
     ff.sl.x.Max = max(x_steps);
     ff.sl.x.Min = min(x_steps);
-    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe)); 
+    addlistener(ff.sl.x,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,x_steps,ff.sh.x,x,pe,robot)); 
     
     ff.sl.p = uicontrol('style','slider','units','pixel','string','body pitch','tag','tag_sl_p'); 
     ff.sl.p.Max = max(p_steps);
     ff.sl.p.Min = min(p_steps);
-    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe)); 
+    addlistener(ff.sl.p,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,p_steps,ff.sh.p,pitch,pe,robot)); 
     
     ff.sl.h= uicontrol('style','slider','units','pixel','string','body heading','tag','tag_sl_r'); 
     ff.sl.h.Max = max(h_steps);
     ff.sl.h.Min = min(h_steps);
-    addlistener(ff.sl.h,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,h_steps,ff.sh.h,heading,pe)); 
+    addlistener(ff.sl.h,'ContinuousValueChange',@(hObject, event) update_fig(hObject,event,h_steps,ff.sh.h,heading,pe,robot)); 
     
     ff.bt = uicontrol('style','pushbutton')
     addlistener(ff.bt,'ButtonDown',@(hObject, event) reset_fig(n0,  x(1,1,1), pitch(n0,1,1), heading(1,1,n0), pe, robot))
@@ -102,9 +111,9 @@ function plot_pillar_cuboidal
     format_gui
     
 %   reset the figure once before showing
-    reset_fig(n0, x(1,1,1), pitch(n0,1,1), heading(1,1,n0), pe)
+    reset_fig(n0, x(1,1,1), pitch(n0,1,1), heading(1,1,n0), pe,robot)
     
-function update_fig(hObject, event, steps,sh,depvar,pe)
+function update_fig(hObject, event, steps,sh,depvar,pe,robot)
 
     val_temp = get(hObject,'Value');
     [~, min_idx] = min(abs(steps-val_temp));
@@ -121,10 +130,12 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             sh.CData = squeeze(    pe(:, min_idx, :));
             hh = findobj('tag','x_sec');
             gg = findobj('tag','sp_x_sec');  
-            gg.Title.String=['{\it x}= ' str_app num2str(abs(steps(min_idx))) 'mm'];
+            gg.Title.String=['{\it x} = ' str_app num2str(abs(steps(min_idx))) ' mm'];
             gg = findobj('tag','xbound');            gg.ZData = [1 1 1 1]*sh.ZData(1);
             ss = findobj('tag','state_3d');
             ss.ZData = steps(min_idx);
+            gg = findobj('tag','var_1');  
+            gg.String=['body forward position (x) = ', str_app num2str(abs(steps(min_idx))) ' mm'];
             
         case 'body pitch'
             sh.YData = squeeze(depvar(min_idx, :, :));
@@ -135,6 +146,8 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','pbound');            gg.YData = [1 1 1 1]*sh.YData(1);
             ss = findobj('tag','state_3d');
             ss.YData = steps(min_idx);
+            gg = findobj('tag','var_2');  
+            gg.String=['body pitch = ' str_app num2str(abs(steps(min_idx))) '°'];
       
         case 'body heading'
             sh.XData = squeeze(depvar(:, :, min_idx));
@@ -145,6 +158,8 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
             gg = findobj('tag','hbound');            gg.XData = [1 1 1 1]*sh.XData(1);
             ss = findobj('tag','state_3d');
             ss.XData = steps(min_idx);
+            gg = findobj('tag','var_3');  
+            gg.String=['body heading = ' str_app num2str(abs(steps(min_idx))) '°'];
 
     end
 
@@ -160,6 +175,9 @@ function update_fig(hObject, event, steps,sh,depvar,pe)
     sx = findobj('tag','state_cx'); sx.XData=ss.XData; sx.YData=ss.YData; sx.ZData=2000;
     sh = findobj('tag','state_ch'); sh.XData=ss.YData; sh.YData=ss.ZData; sh.ZData=2000;
     sp = findobj('tag','state_cp'); sp.XData=ss.XData; sp.YData=ss.ZData; sp.ZData=2000;
+    
+    % robot
+    update_robot_geometry(x_ip,pitch_ip,heading_ip,robot)
     
     
 % reset figure to initial state    
@@ -202,6 +220,15 @@ function reset_fig(n0,x0,p0,h0,pe,robot)
     ss = findobj('tag','state_cp');    ss.XData = h0;    ss.YData = x0;    ss.ZData = 2000;
      
     % robot
+    update_robot_geometry(x0,p0,h0,robot)
 
-%     update_robot_geometry
+% update_robot_geometry
+function update_robot_geometry(x,p,h,robot)
+    
+    % rotate robot body     
+    robot.patch.Vertices = (EulerZYX_Fast([0 p h])*(robot.verts'))';
+    robot.patch.Vertices(:,1) = robot.patch.Vertices(:,1) + x;
+    robot.patch.Vertices(:,3) = robot.patch.Vertices(:,3) - min(robot.patch.Vertices(:,3)); 
+        
+
     
